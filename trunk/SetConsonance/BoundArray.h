@@ -1,0 +1,367 @@
+// Copyleft 2013 Chris Korda
+// This program is free software; you can redistribute it and/or modify it
+// under the terms of the GNU General Public License as published by the Free
+// Software Foundation; either version 2 of the License, or any later version.
+/*
+		chris korda
+ 
+		revision history:
+		rev		date	comments
+		00		23aug13	initial version
+		01		18mar15	add search and extraction; copy elements individually
+		02		03apr15	add serialization
+		03		17jan23	add get data methods
+		04		26jul24	add equality operators
+ 
+		dynamic array with a fixed maximum size
+ 
+*/
+
+#ifndef CBOUND_ARRAY
+#define	CBOUND_ARRAY
+
+template<class TYPE, int MAX_SIZE>
+class CBoundArray {
+public:
+// Construction
+	CBoundArray();
+	CBoundArray(const CBoundArray& arr);
+	CBoundArray(const TYPE *pSrc, int nCount);
+	CBoundArray& operator=(const CBoundArray& arr);
+
+// Attributes
+	bool	IsEmpty() const;
+	int		GetMaxSize() const;
+	int		GetSize() const;
+	void	SetSize(int Size);
+	const TYPE&	GetAt(int nIndex) const;
+	TYPE&	GetAt(int nIndex);
+	void	SetAt(int nIndex, TYPE Element);
+	const TYPE&	operator[](int nIndex) const;
+	TYPE&	operator[](int nIndex);
+	const TYPE	*GetData() const;
+	TYPE	*GetData();
+	bool	operator==(const CBoundArray& arr) const;
+	bool	operator!=(const CBoundArray& arr) const;
+
+// Operations
+	void	Copy(const TYPE *pSrc, int nCount);
+	void	Add(TYPE Element);
+	int		Append(const CBoundArray& arr);
+	void	InsertAt(int nIndex, TYPE Element);
+	void	InsertAt(int nIndex, TYPE Element, int nCount);
+	void	InsertAt(int nIndex, const CBoundArray& arr);
+	void	RemoveAt(int nIndex);
+	void	RemoveAll();
+	int		Find(TYPE Target, int iStart = 0) const;
+	int		ReverseFind(TYPE Target) const;
+	void	Sort(bool Descending = false);
+	void	MakeReverse();
+	void	Left(CBoundArray& arr, int nCount) const;
+	void	Right(CBoundArray& arr, int nCount) const;
+	void	Mid(CBoundArray& arr, int nFirst) const;
+	void	Mid(CBoundArray& arr, int nFirst, int nCount) const;
+
+protected:
+// Data members
+	int		m_Size;				// number of elements
+	TYPE	m_Data[MAX_SIZE];	// array of elements
+
+// Helpers
+	static	void	CopyElements(TYPE *pDest, const TYPE *pSrc, int nCount);
+	static	int		SortCompareAscending(const void *elem1, const void *elem2);
+	static	int		SortCompareDescending(const void *elem1, const void *elem2);
+};
+
+template<class TYPE, int MAX_SIZE>
+inline CBoundArray<TYPE, MAX_SIZE>::CBoundArray()
+{
+	m_Size = 0;
+}
+
+template<class TYPE, int MAX_SIZE>
+inline void CBoundArray<TYPE, MAX_SIZE>::CopyElements(TYPE *pDest, const TYPE *pSrc, int nCount)
+{
+	while (nCount-- > 0)
+		*pDest++ = *pSrc++;
+}
+
+template<class TYPE, int MAX_SIZE>
+inline CBoundArray<TYPE, MAX_SIZE>::CBoundArray(const CBoundArray& arr)
+{
+	SetSize(arr.m_Size);
+	CopyElements(m_Data, arr.m_Data, arr.m_Size);
+}
+
+template<class TYPE, int MAX_SIZE>
+inline CBoundArray<TYPE, MAX_SIZE>::CBoundArray(const TYPE *pSrc, int nCount)
+{
+	Copy(pSrc, nCount);
+}
+
+template<class TYPE, int MAX_SIZE>
+inline CBoundArray<TYPE, MAX_SIZE>& CBoundArray<TYPE, MAX_SIZE>::operator=(const CBoundArray& arr)
+{
+	SetSize(arr.m_Size);
+	CopyElements(m_Data, arr.m_Data, arr.m_Size);
+	return(*this);
+}
+
+template<class TYPE, int MAX_SIZE>
+inline bool CBoundArray<TYPE, MAX_SIZE>::IsEmpty() const
+{
+	return(m_Size <= 0);
+}
+
+template<class TYPE, int MAX_SIZE>
+inline int CBoundArray<TYPE, MAX_SIZE>::GetMaxSize() const
+{
+	return(MAX_SIZE);
+}
+
+template<class TYPE, int MAX_SIZE>
+inline int CBoundArray<TYPE, MAX_SIZE>::GetSize() const
+{
+	return(m_Size);
+}
+
+template<class TYPE, int MAX_SIZE>
+inline void CBoundArray<TYPE, MAX_SIZE>::SetSize(int Size)
+{
+	ASSERT(Size >= 0 && Size <= MAX_SIZE);
+	m_Size = Size;
+}
+
+template<class TYPE, int MAX_SIZE>
+inline const TYPE& CBoundArray<TYPE, MAX_SIZE>::GetAt(int nIndex) const
+{
+	ASSERT(nIndex >= 0 && nIndex < m_Size);
+	return(m_Data[nIndex]);
+}
+
+template<class TYPE, int MAX_SIZE>
+inline TYPE& CBoundArray<TYPE, MAX_SIZE>::GetAt(int nIndex)
+{
+	ASSERT(nIndex >= 0 && nIndex < m_Size);
+	return(m_Data[nIndex]);
+}
+
+template<class TYPE, int MAX_SIZE>
+inline void CBoundArray<TYPE, MAX_SIZE>::SetAt(int nIndex, TYPE Element)
+{
+	ASSERT(nIndex >= 0 && nIndex < m_Size);
+	m_Data[nIndex] = Element;
+}
+
+template<class TYPE, int MAX_SIZE>
+inline const TYPE& CBoundArray<TYPE, MAX_SIZE>::operator[](int nIndex) const
+{
+	return(GetAt(nIndex));
+}
+
+template<class TYPE, int MAX_SIZE>
+inline TYPE& CBoundArray<TYPE, MAX_SIZE>::operator[](int nIndex)
+{
+	return(GetAt(nIndex));
+}
+
+template<class TYPE, int MAX_SIZE>
+inline const TYPE *CBoundArray<TYPE, MAX_SIZE>::GetData() const
+{
+	return m_Data;
+}
+
+template<class TYPE, int MAX_SIZE>
+inline TYPE *CBoundArray<TYPE, MAX_SIZE>::GetData()
+{
+	return m_Data;
+}
+
+template<class TYPE, int MAX_SIZE>
+inline void CBoundArray<TYPE, MAX_SIZE>::Copy(const TYPE *pSrc, int nCount)
+{
+	SetSize(nCount);
+	CopyElements(m_Data, pSrc, nCount);
+}
+
+template<class TYPE, int MAX_SIZE>
+inline void CBoundArray<TYPE, MAX_SIZE>::Add(TYPE Element)
+{
+	ASSERT(m_Size < MAX_SIZE);
+	m_Data[m_Size] = Element;
+	m_Size++;
+}
+
+template<class TYPE, int MAX_SIZE>
+inline int CBoundArray<TYPE, MAX_SIZE>::Append(const CBoundArray& arr)
+{
+	int nOldSize = m_Size;
+	SetSize(m_Size + arr.m_Size);
+	CopyElements(m_Data + nOldSize, arr.m_Data, arr.m_Size);
+	return(nOldSize);
+}
+
+template<class TYPE, int MAX_SIZE>
+inline void CBoundArray<TYPE, MAX_SIZE>::InsertAt(int nIndex, TYPE Element)
+{
+	ASSERT(nIndex >= 0 && nIndex <= m_Size);
+	ASSERT(m_Size < MAX_SIZE);
+	for (int iElem = m_Size - 1; iElem >= nIndex; iElem--)
+		m_Data[iElem + 1] = m_Data[iElem];
+	m_Data[nIndex] = Element;
+	m_Size++;
+}
+
+template<class TYPE, int MAX_SIZE>
+inline void CBoundArray<TYPE, MAX_SIZE>::InsertAt(int nIndex, TYPE Element, int nCount)
+{
+	ASSERT(nIndex >= 0 && nIndex <= m_Size);
+	ASSERT(m_Size + nCount <= MAX_SIZE);
+	int	iElem;
+	for (iElem = m_Size - 1; iElem >= nIndex; iElem--)
+		m_Data[iElem + nCount] = m_Data[iElem];
+	for (iElem = nIndex; iElem < nIndex + nCount; iElem++)
+		m_Data[iElem] = Element;
+	m_Size += nCount;
+}
+
+template<class TYPE, int MAX_SIZE>
+inline void CBoundArray<TYPE, MAX_SIZE>::InsertAt(int nIndex, const CBoundArray& arr)
+{
+	ASSERT(nIndex >= 0 && nIndex <= m_Size);
+	ASSERT(m_Size + arr.m_Size <= MAX_SIZE);
+	int	nCount = arr.m_Size;
+	for (int iElem = m_Size - 1; iElem >= nIndex; iElem--)
+		m_Data[iElem + nCount] = m_Data[iElem];
+	CopyElements(&m_Data[nIndex], arr.m_Data, nCount);
+	m_Size += nCount;
+}
+
+template<class TYPE, int MAX_SIZE>
+inline void CBoundArray<TYPE, MAX_SIZE>::RemoveAt(int nIndex)
+{
+	ASSERT(nIndex >= 0 && nIndex < m_Size);
+	m_Size--;
+	int	nElems = m_Size;
+	for (int iElem = nIndex; iElem < nElems; iElem++)
+		m_Data[iElem] = m_Data[iElem + 1];
+}
+
+template<class TYPE, int MAX_SIZE>
+inline void CBoundArray<TYPE, MAX_SIZE>::RemoveAll()
+{
+	m_Size = 0;
+}
+
+template<class TYPE, int MAX_SIZE>
+inline int CBoundArray<TYPE, MAX_SIZE>::Find(TYPE Target, int iStart) const
+{
+	ASSERT(iStart >= 0 && iStart <= m_Size);
+	int	nElems = m_Size;
+	for (int iElem = iStart; iElem < nElems; iElem++) {
+		if (m_Data[iElem] == Target)
+			return(iElem);
+	}
+	return(-1);
+}
+
+template<class TYPE, int MAX_SIZE>
+inline int CBoundArray<TYPE, MAX_SIZE>::ReverseFind(TYPE Target) const
+{
+	for (int iElem = m_Size - 1; iElem >= 0; iElem--) {
+		if (m_Data[iElem] == Target)
+			return(iElem);
+	}
+	return(-1);
+}
+
+template<class TYPE, int MAX_SIZE>
+int CBoundArray<TYPE, MAX_SIZE>::SortCompareAscending(const void *elem1, const void *elem2)
+{
+	const TYPE	*a = (const TYPE *)elem1;
+	const TYPE	*b = (const TYPE *)elem2;
+	return(*a < *b ? -1 : (*a > *b ? 1 : 0));
+}
+
+template<class TYPE, int MAX_SIZE>
+int CBoundArray<TYPE, MAX_SIZE>::SortCompareDescending(const void *elem1, const void *elem2)
+{
+	const TYPE	*a = (const TYPE *)elem1;
+	const TYPE	*b = (const TYPE *)elem2;
+	return(*a < *b ? 1 : (*a > *b ? -1 : 0));
+}
+
+template<class TYPE, int MAX_SIZE>
+inline void CBoundArray<TYPE, MAX_SIZE>::Sort(bool Descending)
+{
+	qsort(m_Data, m_Size, sizeof(TYPE), 
+		Descending ? SortCompareDescending : SortCompareAscending);
+}
+
+template<class TYPE, int MAX_SIZE>
+inline void CBoundArray<TYPE, MAX_SIZE>::MakeReverse()
+{
+	TYPE	tmp;
+	int	nElems = m_Size;
+	int	iLastElem = nElems - 1;
+	int	nHalfElems = nElems / 2;
+	for (int iElem = 0; iElem < nHalfElems; iElem++) {
+		tmp = m_Data[iElem];
+		m_Data[iElem] = m_Data[iLastElem - iElem];
+		m_Data[iLastElem - iElem] = tmp;
+	}
+}
+
+template<class TYPE, int MAX_SIZE>
+inline void CBoundArray<TYPE, MAX_SIZE>::Left(CBoundArray& arr, int nCount) const
+{
+	nCount = min(nCount, m_Size);
+	arr.SetSize(nCount);
+	CopyElements(arr.m_Data, m_Data, nCount);
+}
+
+template<class TYPE, int MAX_SIZE>
+inline void CBoundArray<TYPE, MAX_SIZE>::Right(CBoundArray& arr, int nCount) const
+{
+	nCount = min(nCount, m_Size);
+	arr.SetSize(nCount);
+	CopyElements(arr.m_Data, m_Data + m_Size - nCount, nCount);
+}
+
+template<class TYPE, int MAX_SIZE>
+inline void CBoundArray<TYPE, MAX_SIZE>::Mid(CBoundArray& arr, int nFirst) const
+{
+	ASSERT(nFirst >= 0 && nFirst <= m_Size);
+	int	nCount = m_Size - nFirst;
+	arr.SetSize(nCount);
+	CopyElements(arr.m_Data, m_Data + nFirst, nCount);
+}
+
+template<class TYPE, int MAX_SIZE>
+inline void CBoundArray<TYPE, MAX_SIZE>::Mid(CBoundArray& arr, int nFirst, int nCount) const
+{
+	ASSERT(nFirst >= 0 && nFirst <= m_Size);
+	nCount = min(nCount, m_Size - nFirst);
+	arr.SetSize(nCount);
+	CopyElements(arr.m_Data, m_Data + nFirst, nCount);
+}
+
+template<class TYPE, int MAX_SIZE>
+inline bool CBoundArray<TYPE, MAX_SIZE>::operator==(const CBoundArray& arr) const
+{
+	if (arr.GetSize() != m_Size)
+		return false;
+	for (int iElem = 0; iElem < m_Size; iElem++) {
+		if (arr[iElem] != GetAt(iElem))
+			return false;
+	}
+	return true;
+}
+
+template<class TYPE, int MAX_SIZE>
+inline bool CBoundArray<TYPE, MAX_SIZE>::operator!=(const CBoundArray& arr) const
+{
+	return !operator==(arr);
+}
+
+#endif
