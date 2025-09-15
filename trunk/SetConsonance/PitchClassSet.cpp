@@ -15,6 +15,7 @@
 		05		26jul24	FindForte now returns index of prime form
 		06		19sep24	add symbol column to Forte definitions
 		07		06aug25	use square brackets instead of parentheses
+		08		15sep25	add GetMask
 
 */
 
@@ -152,9 +153,36 @@ void CPitchClassSet::TransposeToC()
 {
 	// assume set is already normalized and sorted
 	int	nSize = GetSize();
-	int	offset = GetAt(0);
+	int	nOffset = GetAt(0);
 	for (int iElem = 0; iElem < nSize; iElem++)
-		GetAt(iElem) -= offset;
+		GetAt(iElem) -= nOffset;
+}
+
+void CPitchClassSet::Transpose(int nOffset)
+{
+	int	nSize = GetSize();
+	for (int iElem = 0; iElem < nSize; iElem++)
+		GetAt(iElem) += nOffset;
+}
+
+WORD CPitchClassSet::GetMask() const
+{
+	WORD	nMask = 0;
+	int	nSize = GetSize();
+	for (int iElem = 0; iElem < nSize; iElem++) {
+		nMask |= (1 << GetAt(iElem));
+	}
+	return nMask;
+}
+
+WORD CPitchClassSet::GetMask(int nTranspose) const
+{
+	WORD	nMask = 0;
+	int	nSize = GetSize();
+	for (int iElem = 0; iElem < nSize; iElem++) {
+		nMask |= (1 << ((GetAt(iElem) + nTranspose) % OCTAVE));
+	}
+	return nMask;
 }
 
 void CPitchClassSet::RemoveDuplicates()

@@ -13,6 +13,7 @@
 		03		22oct19	overload FindForte
 		04		17jan23	improve portability
 		05		26jul24	FindForte now returns index of prime form
+		07		15sep25	add GetMask
 
 */
 
@@ -63,6 +64,8 @@ public:
 	static	LPCTSTR	GetForte(int iPrime);
 	bool	operator==(const CPitchClassSet& set) const;
 	bool	operator!=(const CPitchClassSet& set) const;
+	WORD	GetMask() const;
+	WORD	GetMask(int nTranspose) const;
 
 // Operations
 	void	Dump() const;
@@ -73,6 +76,7 @@ public:
 	SET_ID	FindPrimeForm(SET_ID *pInverse = NULL);
 	void	Normalize();
 	void	TransposeToC();
+	void	Transpose(int nOffset);
 	void	RemoveDuplicates();
 	void	MakePrimeForm();
 	static	int		FindForte(SET_ID id);

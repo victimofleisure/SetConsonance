@@ -8,6 +8,7 @@
 		revision history:
 		rev		date	comments
         00      16jan23	initial version
+		00		15sep25	use bitmasks for set equivalence
 
 */
 
@@ -252,17 +253,17 @@ static const PCS_ALIAS m_arrPCSAlias[] = {
 {FN_5_Z17,	HF_DOM,		"maj7#5",	{{Db, MELODIC_MINOR, PHRYGIAN, {1, 3, 5, 6, 7}}, {-1}}},
 {FN_5_Z18,	HF_DOM,		"7b9",		{{F, HARMONIC_MINOR, MIXOLYDIAN, {1, 2, 3, 4, 5}}, {C, HARMONIC_MINOR, LYDIAN, {1, 2, 3, 4, 5}, "-7#11"}}},
 {FN_5_19,	HF_DOM,		"13#9",		{{C, HUNGARIAN_MAJOR, PHRYGIAN, {1, 3, 4, 6, 7}}, {F, HUNGARIAN_MAJOR, DORIAN, {1, 3, 4, 5, 7}, "oM7"}}},
-{FN_5_20,	HF_TONIC,	"maj7",		{{Db, MAJOR, LYDIAN, {1, 2, 4, 5, 7}}, {G, MAJOR, LYDIAN, {1, 3, 4, 5, 7}, "maj7"}}},
+{FN_5_20,	HF_TONIC,	"maj7",		{{Db, MAJOR, LYDIAN, {1, 2, 4, 5, 7}}, {G, MAJOR, LYDIAN, {1, 3, 4, 5, 7}}}},
 {FN_5_21,	HF_DOM,		"-maj7",	{{F, HARMONIC_MINOR, IONIAN, {1, 3, 5, 6, 7}}, {C, HARMONIC_MAJOR, IONIAN, {1, 3, 5, 6, 7}, "maj7(b6)"}}},
 {FN_5_22,	HF_DOM,		"-maj7",	{{F, HARMONIC_MINOR, IONIAN, {2, 3, 5, 6, 7}}, {-1}}},
 {FN_5_23,	HF_SUBDOM,	"-7",		{{Bb, MAJOR, DORIAN, {1, 2, 3, 4, 5}}, {F, MAJOR, LYDIAN, {1, 2, 5, 6, 7}, "maj7"}}},
-{FN_5_24,	HF_TONIC,	"maj7",		{{Ab, MAJOR, LYDIAN, {1, 2, 3, 4, 7}}, {C, MAJOR, LYDIAN, {1, 2, 3, 4, 5}, "maj7"}}},
+{FN_5_24,	HF_TONIC,	"maj7",		{{Ab, MAJOR, LYDIAN, {1, 2, 3, 4, 7}}, {C, MAJOR, LYDIAN, {1, 2, 3, 4, 5}}}},
 {FN_5_25,	HF_DOM,		"-6",		{{Eb, MAJOR, DORIAN, {1, 3, 5, 6, 7}}, {F, MAJOR, MIXOLYDIAN, {1, 3, 5, 6, 7}, "13"}}},
 {FN_5_26,	HF_DOM,		"7b9",		{{F, MELODIC_MINOR, LOCRIAN, {1, 2, 4, 6, 7}}, {F, MELODIC_MINOR, PHRYGIAN, {1, 2, 3, 5, 7}, "maj7#5"}}},
-{FN_5_27,	HF_TONIC,	"maj7",		{{Ab, MAJOR, LYDIAN, {1, 2, 3, 5, 7}}, {C, MAJOR, LYDIAN, {2, 3, 4, 5, 7}, "maj7"}}},
-{FN_5_28,	HF_DOM,		"7#4",		{{Eb, MELODIC_MINOR, LYDIAN, {1, 3, 4, 5, 7}}, {G, MELODIC_MINOR, LYDIAN, {1, 3, 4, 6, 7}, "7#4"}}},
+{FN_5_27,	HF_TONIC,	"maj7",		{{Ab, MAJOR, LYDIAN, {1, 2, 3, 5, 7}}, {C, MAJOR, LYDIAN, {2, 3, 4, 5, 7}}}},
+{FN_5_28,	HF_DOM,		"7#4",		{{Eb, MELODIC_MINOR, LYDIAN, {1, 3, 4, 5, 7}}, {G, MELODIC_MINOR, LYDIAN, {1, 3, 4, 6, 7}}}},
 {FN_5_29,	HF_DOM,		"7",		{{Db, MAJOR, MIXOLYDIAN, {1, 3, 4, 5, 7}}, {G, MAJOR, MIXOLYDIAN, {2, 3, 5, 6, 7}, "13"}}},
-{FN_5_30,	HF_DOM,		"7#4",		{{Db, MELODIC_MINOR, LYDIAN, {1, 2, 4, 5, 7}}, {A, MELODIC_MINOR, LYDIAN, {2, 4, 4, 6, 7}, "7#4"}}},
+{FN_5_30,	HF_DOM,		"7#4",		{{Db, MELODIC_MINOR, LYDIAN, {1, 2, 4, 5, 7}}, {A, MELODIC_MINOR, LOCRIAN, {1, 3, 4, 6, 7}, "7#9"}}},
 {FN_5_31,	HF_DOM,		"7b9",		{{Bb, HARMONIC_MINOR, MIXOLYDIAN, {2, 3, 5, 6, 7}}, {G, HARMONIC_MAJOR, LOCRIAN, {1, 3, 4, 5, 7}, "o7"}}},
 {FN_5_32,	HF_DOM,		"7b9",		{{Db, HARMONIC_MINOR, MIXOLYDIAN, {2, 3, 4, 6, 7}}, {E, HARMONIC_MAJOR, PHRYGIAN, {1, 3, 4, 5, 7}, "#9"}}},
 {FN_5_33,	HF_DOM,		"+7",		{{A, MELODIC_MINOR, MIXOLYDIAN, {1, 2, 3, 6, 7}}, {-1}}},
@@ -321,14 +322,7 @@ void InvertSet(CPitchClassSet& pcs)
 
 bool EquivalentSet(const CPitchClassSet& setRef, const CPitchClassSet& setTest, int nTranspose = 0)
 {
-	int	nSize = setTest.GetSize();
-//	if (setTest.GetSize() != nSize)
-//		return false;
-	for (int i = 0; i < nSize; i++) {
-		if (setRef.Find((setTest[i] + nTranspose) % NOTES) < 0)
-			return false;
-	}
-	return true;
+	return setRef.GetMask() == setTest.GetMask(nTranspose);
 }
 
 void TestIntervalSetForte()
@@ -1847,6 +1841,7 @@ bool Main()
 //	TestIntervalSetForte();
 //	ValidateSetClasses("Wikipedia set classes.csv");
 	if (!TestHarmonizations()) return false;
+printf("harms ok\n");//@@@
 //	CalcOptimalSpacingAllSets();
 //	int	nSet = 0x2233;
 //	int	nSet = 0x2332;	// override = 11
