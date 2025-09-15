@@ -1612,13 +1612,13 @@ void MakeToneHtmlTbl()
 	CStdioFile	fOut("ToneMap.html", CFile::modeCreate | CFile::modeWrite);
 	fOut.WriteString("<!DOCTYPE html>\n<html>\n<head>\n<title>Tone Map</title>\n"
 		"<style>\n"
-		".bgd { background-color:#ffffff; }\n"	// default
-		".bgb { background-color:#ffb8b8; }\n"	// bass
-		".bgc { background-color:#b8ffb8; }\n"	// chord
-		".bgm { background-color:#b8b8ff; }\n"	// melody
-		".bgmc { background-color:#b8ffff; }\n"	// melody and chord
-		".bgmb { background-color:#ffb8ff; }\n"	// melody and bass
-		".bgavoid { background-color:#000000; }\n"	// avoid note
+		".bgd { background-color: #ffffff; }\n"	// default
+		".bgb { background-color: #ffb8b8; }\n"	// bass
+		".bgc { background-color: #b8ffb8; }\n"	// chord
+		".bgm { background-color: #b8b8ff; }\n"	// melody
+		".bgmc { background-color: #b8ffff; }\n"	// melody and chord
+		".bgmb { background-color: #ffb8ff; }\n"	// melody and bass
+		".bgavoid { background-color: #000000; }\n"	// avoid note
 		".toll { border-left: 2px solid; }\n"
 		"* { font-family: Arial; }\n"
 		"table, tr, th, td { border-collapse: collapse; border: 1px solid; }\n"
