@@ -8,7 +8,8 @@
 		revision history:
 		rev		date	comments
         00      16jan23	initial version
-		00		15sep25	use bitmasks for set equivalence
+		01		15sep25	use bitmasks for set equivalence
+		02		30sep25	fix mode of FN_4_17 (heptatonic only)
 
 */
 
@@ -26,8 +27,7 @@ extern "C" {
 #include "_generate.h"
 };
 
-#define CONSOLE_NATTER 1
-
+#define CONSOLE_NATTER 0
 using namespace std;
 
 typedef vector<CIntervalSet> CIntervalSetArray;
@@ -224,7 +224,7 @@ static const PCS_ALIAS m_arrPCSAlias[] = {
 {FN_4_17,	HF_DOM,		"13b9#4",	{{E, DIMINISHED, DORIAN, {2, 5, 7, 8}}, {-1}}},
 {FN_4_18,	HF_DOM,		"13b9",		{{Db, DIMINISHED, DORIAN, {2, 4, 7, 8}}, {C, HARMONIC_MINOR, MIXOLYDIAN, {2, 3, 4, 7}, "7b9(4)"}}},
 #else
-{FN_4_17,	HF_DOM,		"13b9#4",	{{E, HARMONIC_MINOR, AOLIAN, {1, 2, 3, 5}}, {-1}}},
+{FN_4_17,	HF_DOM,		"13b9#4",	{{E, HARMONIC_MINOR, DORIAN, {2, 5, 6, 7}}, {-1}}},
 {FN_4_18,	HF_DOM,		"13b9",		{{E, ASYMMETRIC_DIM, LOCRIAN, {2, 3, 6, 7}}, {C, HARMONIC_MINOR, MIXOLYDIAN, {2, 3, 4, 7}, "7b9(4)"}}},
 #endif
 {FN_4_19,	HF_DOM,		"-maj7",	{{Db, MELODIC_MINOR, IONIAN, {1, 3, 5, 7}}, {A, MELODIC_MINOR, PHRYGIAN, {1, 3, 5, 7}, "maj7#5"}}},
@@ -1289,13 +1289,14 @@ bool m_bMapTones;
 
 bool ProcessIntervalSet(UINT nSetCode)
 {
-#if 0
+#if 1
 //	LPCTSTR	pszSetFolderPath = _T("C:\\Chris\\MyProjects\\BalaGray\\BalaGray");
-	LPCTSTR	pszSetFolderPath = _T("C:\\Chris\\MyProjects\\BalaGrayIterSD");
+//	LPCTSTR	pszSetFolderPath = _T("C:\\Chris\\MyProjects\\BalaGrayIterSD");
 //	LPCTSTR	pszSetFolderPath = _T("C:\\Chris\\MyProjects\\BalaGrayIter - Copy\\BalaGray");
 //	LPCTSTR	pszSetFolderPath = _T("D:\\temp\\BalaGray");
 //	LPCTSTR	pszSetFolderPath = _T("D:\\temp\\BalaGray rev depth 7");
 //	LPCTSTR	pszSetFolderPath = _T("C:\\Chris\\MyProjects\\BalaGrayIterSD\\444");
+	LPCTSTR	pszSetFolderPath = _T("D:\\temp\\BalaGray server\\BalaGray 24hrs rev depth 7");
 	if (!m_setBG.ReadSetData(nSetCode, pszSetFolderPath)) {
 		printf("error reading set %X\n", nSetCode);
 		return false;
@@ -1305,7 +1306,7 @@ bool ProcessIntervalSet(UINT nSetCode)
 	for (int iPlace = 0; iPlace < m_setBG.m_nDigits; iPlace++) {
 		m_setSpan.b[iPlace] = sSetName[iPlace] - '0';
 	}
-	int	iSpacingOverride = 1;	// if non-negative, index of spacing to select, regardless of optimality
+	int	iSpacingOverride = -1;	// if non-negative, index of spacing to select, regardless of optimality
 	bool	bSkipDups = 0;	// non-zero to exclude duplicate spacing permutations (based on prime forms they produce)
 	if (!CalcOptimalSetSpacing(m_setSpan, m_setBestSpacing, iSpacingOverride, bSkipDups))
 		return false;
@@ -1316,9 +1317,11 @@ bool ProcessIntervalSet(UINT nSetCode)
 //	LPCTSTR pszPCSPath = _T("C:\\Chris\\MyProjects\\MidiFilter\\MidiFilter\\Fine Teeth C hexachord.txt");
 //	LPCTSTR pszPCSPath = _T("C:\\Chris\\MyProjects\\MidiFilter\\MidiFilter\\spacings of 333 v3.txt");	
 //	LPCTSTR pszPCSPath = _T("C:\\Chris\\MyProjects\\MidiFilter\\MidiFilter\\spacings of 333 bass.txt");	
-	LPCTSTR pszPCSPath = _T("C:\\Chris\\MyProjects\\MidiFilter\\MidiFilter\\spacings of 333 melody.txt");	
+//	LPCTSTR pszPCSPath = _T("C:\\Chris\\MyProjects\\MidiFilter\\MidiFilter\\spacings of 333 melody.txt");	
+//	LPCTSTR pszPCSPath = _T("C:\\Chris\\MyProjects\\MidiFilter\\MidiFilter\\224 in five.txt");	
+	LPCTSTR pszPCSPath = _T("C:\\Chris\\MyProjects\\MidiFilter\\MidiFilter\\224 in five bass.txt");	
 	CStdioFile	fCSV(pszPCSPath, CFile::modeRead);
-	int	nPlaces = 5;
+	int	nPlaces = 4;
 	m_setBestSpacing.SetSize(nPlaces);
 	m_setBestSpacing.Clear();
 	CIntervalSet::SET	m_setSpan = {0};
@@ -1345,7 +1348,7 @@ bool ProcessIntervalSet(UINT nSetCode)
 	bool	bIsSetReversed = 0;//@@@
 	int	nSetRotation = 0;
 	int	nSetTranspose = 0;	// Note: Fine Teeth B is +3
-#if 0	// set rotation and tone mapping
+#if 1	// set rotation and tone mapping
 	if (nSetCode == 0x354) {
 		// new {345} based composition (Renumbering) 1st half
 		nSetRotation = 6;
@@ -1380,8 +1383,11 @@ bool ProcessIntervalSet(UINT nSetCode)
 		m_bMapTones = 1;
 	} else if (nSetCode == 0x3333) {
 		static const BYTE arrToneMap3333[6][12] = {
-			{1, 2, 0},{2, 0, 1},{2, 0, 1},{2, 1, 0} // #821 CTs=457 
+//			{1, 2, 0},{2, 0, 1},{2, 0, 1},{2, 1, 0} // #821 CTs=457 
+			{2, 0, 1},{1, 0, 2},{2, 1, 0},{0, 2, 1} // #967 CTs=462 (PLM 3333 rev 7 24hrs)
 		};
+		nSetRotation = -7;
+		nSetTranspose = -4;
 		memcpy(m_arrToneMap, arrToneMap3333, sizeof(m_arrToneMap));
 		m_bMapTones = 1;
 	} else if (nSetCode == 0x2222) {
@@ -1398,6 +1404,12 @@ bool ProcessIntervalSet(UINT nSetCode)
 			{0, 1, 2},{2, 1, 0},{1, 0, 2}	// for spacing 1, #32 CTs=154 
 		};
 		memcpy(m_arrToneMap, arrToneMap333, sizeof(m_arrToneMap));
+		m_bMapTones = 1;
+	} else if (nSetCode == 0x224) {
+		static const BYTE arrToneMap224[6][12] = {
+			{0, 1},{0, 1},{0, 2, 1, 3} // for spacing [2 0 0] CTs=78
+		};
+		memcpy(m_arrToneMap, arrToneMap224, sizeof(m_arrToneMap));
 		m_bMapTones = 1;
 	}
 #endif
@@ -1439,13 +1451,14 @@ bool ProcessIntervalSet(UINT nSetCode)
 		chord.m_SongChord.nType = harm.iScale;
 		chord.m_SongChord.nKey = nKey;
 		chord.m_SongChord.nMode = harm.nMode;
+		set.Sort();
 		for (int i = 0; i < set.GetSize(); i++) {
 			chord.m_SongChord.arrNote[i] = set[i];
 		}
 		chord.m_iAlias = iAlias;
 		chord.m_iHarm = iHarm;
 	}
-	const int nTonicRepetions = 0;
+	const int nTonicRepetions = 1;
 	if (nTonicRepetions) {
 		int	iChord = 0;
 		while (iChord < m_arrChord.GetSize()) {
@@ -1607,8 +1620,8 @@ void MakeToneHtmlTbl()
 //	ReadCSV("C:\\Chris\\MyProjects\\Polymeter\\docs\\test\\345 bass.csv", arrBassNote);
 //	ReadCSV("C:\\Chris\\MyProjects\\Polymeter\\docs\\test\\345 melody.csv", arrMelodyNote);
 //	ReadCSV("C:\\Chris\\MyProjects\\Polymeter\\docs\\test\\Fine Teeth A bass tones.csv", arrBassNote);
-	ReadCSV("C:\\Chris\\MyProjects\\Polymeter\\docs\\test\\spacings of 333 bass tones.csv", arrBassNote);
-	ReadCSV("C:\\Chris\\MyProjects\\Polymeter\\docs\\test\\spacings of 333 melody tones.csv", arrMelodyNote);
+//	ReadCSV("C:\\Chris\\MyProjects\\Polymeter\\docs\\test\\spacings of 333 bass tones.csv", arrBassNote);
+//	ReadCSV("C:\\Chris\\MyProjects\\Polymeter\\docs\\test\\spacings of 333 melody tones.csv", arrMelodyNote);
 	CStdioFile	fOut("ToneMap.html", CFile::modeCreate | CFile::modeWrite);
 	fOut.WriteString("<!DOCTYPE html>\n<html>\n<head>\n<title>Tone Map</title>\n"
 		"<style>\n"
@@ -1841,7 +1854,6 @@ bool Main()
 //	TestIntervalSetForte();
 //	ValidateSetClasses("Wikipedia set classes.csv");
 	if (!TestHarmonizations()) return false;
-printf("harms ok\n");//@@@
 //	CalcOptimalSpacingAllSets();
 //	int	nSet = 0x2233;
 //	int	nSet = 0x2332;	// override = 11
@@ -1855,14 +1867,15 @@ printf("harms ok\n");//@@@
 //	int	nSet = 0x354;
 //	int	nSet = 0x435;
 //	int	nSet = 0x444;
-//	int	nSet = 0x3333;
-	int	nSet = 0x333;
+	int	nSet = 0x3333;
+//	int	nSet = 0x333;
+//	int	nSet = 0x224;
 	if (!ProcessIntervalSet(nSet)) {
 		printf("ERROR!\n"); 
 		return false;
 	}
 	MakeScalesAndChords();
-//	MakeTracks();
+	MakeTracks();
 //	MakeTracksSimple(nSet);
 	MakeToneMap();
 	MakeToneHtmlTbl();
